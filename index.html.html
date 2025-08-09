@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Teen Career Compass — Career Path Quiz</title>
+  <meta name="description" content="A lightweight, teen-friendly personality + career recommendation quiz (grades 8-10). Single-file, production-ready." />
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#7c3aed;--muted:#9ca3af;--success:#10b981;--glass: rgba(255,255,255,0.04);}html,body{height:100%}
+    body{margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: linear-gradient(180deg,#071029 0%, #071824 60%); color:#e6eef8;}
+    .container{max-width:980px;margin:36px auto;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,0.6);} 
+    header{display:flex;align-items:center;gap:18px}
+    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 6px 18px rgba(124,58,237,0.18)}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 18px;color:var(--muted)}
+    .card{background:var(--card);padding:20px;border-radius:12px;}
+    .question{display:flex;gap:18px;align-items:flex-start}
+    .q-num{width:48px;height:48px;border-radius:10px;background:var(--glass);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);font-size:18px}
+    .q-body{flex:1}
+    .q-text{font-size:18px;margin:0 0 12px}
+    .choices{display:grid;grid-template-columns:1fr;gap:10px}
+    .choice{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:12px;border-radius:10px;cursor:pointer;transition:all .18s;}
+    .choice:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    .choice.selected{background:linear-gradient(90deg, rgba(124,58,237,0.14), rgba(6,182,212,0.06));border-color:rgba(124,58,237,0.6)}
+    .controls{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+    .btn{background:var(--accent);border:none;padding:10px 14px;border-radius:10px;color:#fff;font-weight:600;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+    .progressWrap{background:rgba(255,255,255,0.03);height:10px;border-radius:999px;overflow:hidden}
+    .progress{height:10px;background:linear-gradient(90deg,var(--accent),#06b6d4);width:0%}
+    .resultHeader{display:flex;align-items:center;gap:16px}
+    .traitList{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+    .trait{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px}
+    .careers{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+    .career{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:10px;border-radius:10px}
+    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+    .small{font-size:13px;color:var(--muted)}
+    @media (max-width:700px){.container{margin:18px;padding:16px}.question{flex-direction:column}.q-num{width:44px;height:44px}}
+  </style>
+</head>
+<body>
+  <main class="container" role="main">
+    <header>
+      <div class="logo">TC</div>
+      <div>
+        <h1>Teen Career Compass</h1>
+        <p class="lead">20 quick questions to reveal your strengths and match you to meaningful careers — made for grades 8–10.</p>
+      </div>
+    </header>
+
+    <section id="quiz" class="card" aria-live="polite">
+      <div id="intro">
+        <h2 style="margin:0 0 10px">How it works</h2>
+        <p class="small">Answer the questions honestly. There are no right or wrong answers. We'll combine your choices into a clear profile and career directions you can explore. It takes ~6 minutes.</p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="startBtn" class="btn">Start the quiz</button>
+          <button id="seeSample" class="btn ghost">See sample result</button>
+        </div>
+      </div>
+
+      <div id="questionArea" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="small">Question <strong id="qIndex">1</strong> of <strong id="qTotal">20</strong></div>
+          <div style="width:48%;" aria-hidden>
+            <div class="progressWrap"><div id="progress" class="progress"></div></div>
+          </div>
+        </div>
+
+        <div class="question" id="qCard">
+          <div class="q-num" aria-hidden>Q</div>
+          <div class="q-body">
+            <p class="q-text" id="qText">Loading question...</p>
+            <div class="choices" id="choices"></div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="prevBtn" class="btn ghost">Back</button>
+          <div style="display:flex;gap:8px">
+            <button id="saveBtn" class="btn ghost">Save & Continue</button>
+            <button id="nextBtn" class="btn">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="resultArea" style="display:none">
+        <div class="resultHeader">
+          <div style="width:72px;height:72px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;color:#021124">✓</div>
+          <div>
+            <h2 id="resultTitle" style="margin:0">Your Career Compass</h2>
+            <p class="small" id="resultSub">A short summary of your profile and suggested directions.</p>
+          </div>
+        </div>
+
+        <div class="traitList" id="traits"></div>
+        <h3 style="margin-top:16px">Top suitable careers</h3>
+        <div class="careers" id="careers"></div>
+
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button id="downloadBtn" class="btn ghost">Download JSON</button>
+          <button id="retakeBtn" class="btn">Retake quiz</button>
+        </div>
+      </div>
+
+    </section>
+
+    <footer>
+      <div class="small">Built for students — actionable, light, and designed to spark exploration. Not a clinical diagnosis.</div>
+    </footer>
+  </main>
+
+  <script>
+    // --- Questions set (20) - teen-friendly language, inspired by common frameworks but original ---
+    const QUESTIONS = [
+      {id:1, q: "When you have free time after school, what would you most likely do?", choices:[
+        {t:'Explorer', txt:'Read about science or try a small experiment'}, {t:'Creator', txt:'Draw, edit videos, or make music'}, {t:'Caregiver', txt:'Hang out and help friends with problems'}, {t:'Doer', txt:'Fix something or build a small project'}
+      ]},
+      {id:2, q: "In group projects, I usually...", choices:[
+        {t:'Leader', txt:'Take charge and assign roles'}, {t:'Analyzer', txt:'Plan the timeline and check the facts'}, {t:'Caregiver', txt:'Make sure everyone feels included'}, {t:'Creator', txt:'Design the presentation or visuals'}
+      ]},
+      {id:3, q: "Which school subject excites you the most?", choices:[
+        {t:'Analyzer', txt:'Math or Computer Science'}, {t:'Explorer', txt:'Biology or Science'}, {t:'Creator', txt:'Art, Music or Literature'}, {t:'Caregiver', txt:'Social Studies or Psychology'}
+      ]},
+      {id:4, q: "You prefer solving problems by...", choices:[
+        {t:'Analyzer', txt:'Breaking them into steps and applying logic'}, {t:'Doer', txt:'Trying things hands-on until it works'}, {t:'Explorer', txt:'Researching what experts do'}, {t:'Creator', txt:'Thinking of a new, creative solution'}
+      ]},
+      {id:5, q: "How do you feel about public speaking?", choices:[
+        {t:'Leader', txt:'I enjoy it and feel confident'}, {t:'Caregiver', txt:'I’d rather support others than be the center'}, {t:'Analyzer', txt:'I prepare carefully and stick to facts'}, {t:'Creator', txt:'I like telling stories or performing'}
+      ]},
+      {id:6, q: "Your ideal after-school club would be...", choices:[
+        {t:'Explorer', txt:'Science & Robotics'}, {t:'Creator', txt:'Drama or Media Club'}, {t:'Caregiver', txt:'Community Service'}, {t:'Analyzer', txt:'Math/Programming Club'}
+      ]},
+      {id:7, q: "When learning something new, you prefer...", choices:[
+        {t:'Doer', txt:'Learning by doing and practicing'}, {t:'Explorer', txt:'Understanding the idea and background'}, {t:'Analyzer', txt:'Following rules and methods closely'}, {t:'Creator', txt:'Experimenting with unique ways'}
+      ]},
+      {id:8, q: "If you had to plan a weekend activity, you would...", choices:[
+        {t:'Leader', txt:'Organize friends and make a plan'}, {t:'Explorer', txt:'Go on an educational trip or visit a museum'}, {t:'Caregiver', txt:'Plan something fun that everyone will enjoy'}, {t:'Doer', txt:'Work on a personal project or hobby'}
+      ]},
+      {id:9, q: "What describes you best when faced with rules?", choices:[
+        {t:'Analyzer', txt:'I like clear rules and follow them'}, {t:'Creator', txt:'I look for ways to adapt them creatively'}, {t:'Leader', txt:'I question rules that seem unfair'}, {t:'Explorer', txt:'I want to know why rules exist'}
+      ]},
+      {id:10, q: "Which activity feels most rewarding?", choices:[
+        {t:'Caregiver', txt:'Helping someone and seeing them improve'}, {t:'Doer', txt:'Fixing or creating something useful'}, {t:'Analyzer', txt:'Solving a tough problem correctly'}, {t:'Creator', txt:'Making something beautiful or original'}
+      ]},
+      {id:11, q: "Your friends say you are...", choices:[
+        {t:'Leader', txt:'Influential and decisive'}, {t:'Caregiver', txt:'Warm and dependable'}, {t:'Explorer', txt:'Curious and question everything'}, {t:'Analyzer', txt:'Calm and logical'}
+      ]},
+      {id:12, q: "Which of these school tasks do you avoid most?", choices:[
+        {t:'Leader', txt:'Waiting for others to decide'}, {t:'Creator', txt:'Writing long reports'}, {t:'Doer', txt:'Sitting still for too long'}, {t:'Analyzer', txt:'Open-ended creative tasks without clear rules'}
+      ]},
+      {id:13, q: "When you see a community problem (e.g., litter), you...", choices:[
+        {t:'Caregiver', txt:'Start a cleanup or help organize people'}, {t:'Leader', txt:'Talk to local leaders to change things'}, {t:'Analyzer', txt:'Collect data and propose a plan'}, {t:'Explorer', txt:'Study why it’s happening and learn more'}
+      ]},
+      {id:14, q: "What makes you lose track of time?", choices:[
+        {t:'Creator', txt:'Making art, music, or videos'}, {t:'Analyzer', txt:'Coding or solving puzzles'}, {t:'Doer', txt:'Building or fixing things'}, {t:'Explorer', txt:'Researching a topic deeply'}
+      ]},
+      {id:15, q: "How do you react to a big failure?", choices:[
+        {t:'Analyzer', txt:'Analyze what went wrong and learn'}, {t:'Caregiver', txt:'Talk with friends for support'}, {t:'Leader', txt:'Take responsibility and try again'}, {t:'Creator', txt:'Use it as fuel for new ideas'}
+      ]},
+      {id:16, q: "Which description fits your dream job?", choices:[
+        {t:'Explorer', txt:'Discover new things and keep learning'}, {t:'Creator', txt:'Make things that move people'}, {t:'Leader', txt:'Build and lead teams to big goals'}, {t:'Analyzer', txt:'Solve hard problems with data and logic'}
+      ]},
+      {id:17, q: "If you had to choose a hobby to pursue seriously, you would pick...", choices:[
+        {t:'Doer', txt:'Woodwork, robotics, or mechanics'}, {t:'Creator', txt:'Digital art, music production, filmmaking'}, {t:'Analyzer', txt:'Chess, coding contests, logic puzzles'}, {t:'Caregiver', txt:'Volunteering, mentoring younger kids'}
+      ]},
+      {id:18, q: "You prefer feedback that is...", choices:[
+        {t:'Analyzer', txt:'Concrete and specific'}, {t:'Caregiver', txt:'Kind and encouraging'}, {t:'Leader', txt:'Honest and to the point'}, {t:'Creator', txt:'Open to interpretation and inspiring'}
+      ]},
+      {id:19, q: "When picking a team, you value...", choices:[
+        {t:'Leader', txt:'People who can take responsibility'}, {t:'Analyzer', txt:'People who can reason and plan'}, {t:'Creator', txt:'Unique thinkers who add flavor'}, {t:'Caregiver', txt:'People who keep morale high'}
+      ]},
+      {id:20, q: "Which headline would make you excited to read?", choices:[
+        {t:'Explorer', txt:'New discovery in space/brain/biology'}, {t:'Leader', txt:'Startup raises funds to fix a big problem'}, {t:'Creator', txt:'Young artist goes viral with unique work'}, {t:'Analyzer', txt:'New algorithm beats humans at X task'}
+      ]}
+    ];
+
+    // --- Career mapping (example buckets) ---
+    const CAREER_BUCKETS = {
+      Explorer: [
+        {title:'Research Scientist (Biology/Neuroscience)', why:'Curiosity-driven work, lab research, discovery.'},
+        {title:'Environmental Scientist / Field Biologist', why:'Study nature and solve real-world problems.'}
+      ],
+      Analyzer: [
+        {title:'Software Engineer / Data Scientist', why:'Designing systems and solving technical problems.'},
+        {title:'Statistician / Analyst', why:'Using data to answer questions and support decisions.'}
+      ],
+      Creator: [
+        {title:'Digital Media Creator / Designer', why:'Telling stories through visuals and sound.'},
+        {title:'UX Designer / Game Designer', why:'Build engaging experiences and products.'}
+      ],
+      Caregiver: [
+        {title:'Clinical Psychologist / Counselor', why:'Helping people and improving wellbeing.'},
+        {title:'Social Worker / Public Health Officer', why:'Working on community impact and care.'}
+      ],
+      Doer: [
+        {title:'Mechanical / Electrical Engineer', why:'Hands-on building and prototyping.'},
+        {title:'Technician / Trades Path (e.g., robotics tech)', why:'Skilled, practical problem solving.'}
+      ],
+      Leader: [
+        {title:'Entrepreneur / Product Manager', why:'Building teams and launching products.'},
+        {title:'Consultant / Policy Leader', why:'Leading projects with strategic impact.'}
+      ]
+    };
+
+    // --- App state ---
+    let state = {answers:{}, index:0, totals:{Explorer:0,Analyzer:0,Creator:0,Caregiver:0,Doer:0,Leader:0}};
+    const TOTAL = QUESTIONS.length;
+
+    // --- DOM refs ---
+    const intro = document.getElementById('intro');
+    const startBtn = document.getElementById('startBtn');
+    const seeSample = document.getElementById('seeSample');
+    const questionArea = document.getElementById('questionArea');
+    const qIndex = document.getElementById('qIndex');
+    const qTotal = document.getElementById('qTotal');
+    const qText = document.getElementById('qText');
+    const choicesWrap = document.getElementById('choices');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const progressBar = document.getElementById('progress');
+    const resultArea = document.getElementById('resultArea');
+    const traitsNode = document.getElementById('traits');
+    const careersNode = document.getElementById('careers');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
+
+    qTotal.textContent = TOTAL;
+
+    // Utility: animate progress
+    function setProgress(pct){progressBar.style.width = pct + '%'}
+
+    function renderQuestion(i){
+      const item = QUESTIONS[i];
+      qIndex.textContent = i+1;
+      qText.textContent = item.q;
+      choicesWrap.innerHTML = '';
+      item.choices.forEach((c, ci)=>{
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.type='button';
+        btn.innerHTML = `<div style=\"display:flex;justify-content:space-between;align-items:center\"> <div style=\"text-align:left\">${c.txt}</div> <div style=\"opacity:.6;font-size:13px;\">${c.t}</div></div>`;
+        btn.onclick = ()=> selectChoice(i, ci);
+        if(state.answers[item.id]===ci) btn.classList.add('selected');
+        choicesWrap.appendChild(btn);
+      })
+      setProgress(((i)/TOTAL)*100);
+      // focus first choice for keyboard navigation
+      const first = choicesWrap.querySelector('button'); if(first) first.focus();
+    }
+
+    function selectChoice(i, ci){
+      const item = QUESTIONS[i];
+      state.answers[item.id] = ci;
+      // update UI
+      Array.from(choicesWrap.children).forEach((b, idx)=>{
+        b.classList.toggle('selected', idx===ci);
+      });
+    }
+
+    function goTo(index){
+      if(index<0) index=0; if(index>=TOTAL) index=TOTAL-1;
+      state.index = index; renderQuestion(index);
+    }
+
+    // next and prev handlers
+    nextBtn.addEventListener('click', ()=>{
+      // if not answered, flash
+      const currQ = QUESTIONS[state.index];
+      if(state.answers[currQ.id]===undefined){
+        // small shake
+        choicesWrap.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:250});
+        return;
+      }
+      if(state.index < TOTAL-1){ goTo(state.index+1); } else { finish(); }
+    });
+    prevBtn.addEventListener('click', ()=>{ if(state.index>0) goTo(state.index-1); });
+    saveBtn.addEventListener('click', ()=>{ localStorage.setItem('tcc_state', JSON.stringify(state)); alert('Progress saved locally.'); });
+
+    startBtn.addEventListener('click', ()=>{
+      intro.style.display='none'; questionArea.style.display='block'; goTo(0);
+    });
+    seeSample.addEventListener('click', ()=>{ showResult(sampleResult()); });
+
+    // --- Finish & scoring ---
+    function finish(){
+      // ensure all answered
+      for(const q of QUESTIONS){ if(state.answers[q.id]===undefined){ alert('Please answer all questions before finishing.'); goTo(QUESTIONS.indexOf(q)); return; }}
+      // reset totals
+      for(const k in state.totals) state.totals[k]=0;
+      // tally
+      QUESTIONS.forEach(q=>{
+        const sel = state.answers[q.id];
+        const t = q.choices[sel].t;
+        state.totals[t] = (state.totals[t]||0)+1;
+      });
+      // determine top 2
+      const sorted = Object.entries(state.totals).sort((a,b)=>b[1]-a[1]);
+      const top = sorted[0][0];
+      const second = sorted[1] ? sorted[1][0] : null;
+      // build result object
+      const result = {totals:state.totals, top, second, time: new Date().toISOString()};
+      showResult(result);
+    }
+
+    function showResult(result){
+      questionArea.style.display='none'; resultArea.style.display='block';
+      const top = result.top; const second = result.second;
+      document.getElementById('resultTitle').textContent = `${top} • Primary fit`;
+      document.getElementById('resultSub').textContent = `Primary: ${top}${second?(' · Secondary: '+second):''}`;
+      traitsNode.innerHTML=''; careersNode.innerHTML='';
+
+      // show trait tiles (top 3 most scored)
+      const entries = Object.entries(result.totals).sort((a,b)=>b[1]-a[1]);
+      entries.slice(0,4).forEach(([k,v])=>{
+        const div = document.createElement('div'); div.className='trait';
+        div.innerHTML = `<strong>${k}</strong><div class=small style=\"margin-top:6px;color:var(--muted)\">Score: ${v} / ${TOTAL}</div>`;
+        traitsNode.appendChild(div);
+      });
+
+      // careers: combine top and second buckets
+      const list = [];
+      if(CAREER_BUCKETS[top]) list.push(...CAREER_BUCKETS[top]);
+      if(second && CAREER_BUCKETS[second]) list.push(...CAREER_BUCKETS[second]);
+      // ensure unique
+      const uniq = [];
+      list.forEach(c=>{ if(!uniq.find(x=>x.title===c.title)) uniq.push(c); });
+      uniq.slice(0,6).forEach(c=>{
+        const div = document.createElement('div'); div.className='career';
+        div.innerHTML = `<strong>${c.title}</strong><div class=small style=\"margin-top:6px;color:var(--muted)\">${c.why}</div>`;
+        careersNode.appendChild(div);
+      });
+
+      // Download
+      downloadBtn.onclick = ()=>{ const blob = new Blob([JSON.stringify({result,answers:state.answers},null,2)],{type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='career_compass_result.json'; a.click(); URL.revokeObjectURL(url); }
+      retakeBtn.onclick = ()=>{ location.reload(); }
+    }
+
+    function sampleResult(){
+      // artificial sample for demo
+      return {totals:{Explorer:8,Analyzer:4,Creator:3,Caregiver:2,Doer:2,Leader:1}, top:'Explorer', second:'Analyzer'};
+    }
+
+    // Try to restore saved state
+    window.addEventListener('load', ()=>{
+      const raw = localStorage.getItem('tcc_state');
+      if(raw){ try{ const s=JSON.parse(raw); if(s && s.answers){ if(confirm('Found saved progress. Load it?')){ state = s; intro.style.display='none'; questionArea.style.display='block'; goTo(state.index||0); } } }catch(e){} }
+    });
+
+    // Keyboard support
+    document.addEventListener('keydown', (e)=>{
+      if(questionArea.style.display==='block'){
+        if(e.key==='ArrowRight') nextBtn.click();
+        if(e.key==='ArrowLeft') prevBtn.click();
+        if(e.key>='1' && e.key<='4'){
+          const idx = parseInt(e.key)-1; const q = QUESTIONS[state.index]; if(q && q.choices[idx]) selectChoice(state.index, idx);
+        }
+      }
+    })
+  </script>
+</body>
+</html>
