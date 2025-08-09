@@ -10,8 +10,6 @@ Wayfinder is an interactive, quiz-based career guidance tool that calculates pro
 
 ## Tech Stack
 - HTML
-- CSS
-- JavaScript
 
 ## Run Locally
 https://anirudhgangadharan.github.io/wayfinder/
