@@ -14,4 +14,4 @@ Wayfinder is an interactive, quiz-based career guidance tool that calculates pro
 - JavaScript
 
 ## Run Locally
-https://anirudhgangadharan.github.io/careerconnect/
+https://anirudhgangadharan.github.io/wayfinder/
